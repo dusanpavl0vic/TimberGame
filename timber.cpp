@@ -1,5 +1,16 @@
 #include <SFML/Graphics.hpp>
-
+#include <sstream>
+#include <iostream>
+#include <SFML/Window.hpp>
+#include <SFML/System.hpp>
+#include <SFML/Audio.hpp>
+#include <SFML/Network.hpp>
+#include <SFML/Config.hpp>
+#include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/Graphics/Sprite.hpp>
+#include <SFML/Graphics/Texture.hpp>
+#include <SFML/Graphics/Rect.hpp>
+#include <SFML/Window/Event.hpp>
 
 using namespace sf;
 
@@ -7,6 +18,11 @@ int main()
 {
     sf::VideoMode vm = sf::VideoMode::getDesktopMode();
     sf::RenderWindow window(vm, "Timber!", sf::Style::None);
+
+    float scaleX = vm.width / 1920.0f;
+    float scaleY = vm.height / 1080.0f;
+    std::printf("Scale X: %f\n", scaleX);
+    std::printf("Scale Y: %f\n", scaleY);
 
     Texture backgroundTexture;
     if(!backgroundTexture.loadFromFile("./assets/graphics/background.png")){
@@ -22,7 +38,7 @@ int main()
 
     std::printf("Windows size: %u %u\n", vm.width, vm.height);
     
-    Clock clock;
+    
 
 
     Texture treeTexture;
@@ -31,8 +47,9 @@ int main()
     }
     sf::Sprite treeSprite(treeTexture);
 
-    float treeX = static_cast<float>(vm.width/2) - treeTexture.getSize().x/2;
+    float treeX = static_cast<float>(vm.width/2) - (treeTexture.getSize().x * scaleX)/2;
     float treeY = 0.f;
+    treeSprite.setScale(scaleX, 1);
     treeSprite.setPosition(sf::Vector2f(treeX, treeY));
 
     Texture beeTexture;
@@ -40,7 +57,9 @@ int main()
         std::printf("Error loading bee texture");
     }
     sf::Sprite beeSprite(beeTexture);
-    beeSprite.setPosition(sf::Vector2f(0, 800));
+    beeSprite.setScale(scaleX, scaleY);
+    beeSprite.setPosition(sf::Vector2f(0, 800 * scaleY));
+    
 
     bool beeActive = false;
     float beeSpeed = 0.5f;
@@ -53,9 +72,12 @@ int main()
     sf::Sprite cloudSprite2(cloudTexture);
     sf::Sprite cloudSprite3(cloudTexture);
 
-    cloudSprite1.setPosition(sf::Vector2f(0.f, 0.f));
-    cloudSprite2.setPosition(sf::Vector2f(0.f, 250.f));
-    cloudSprite3.setPosition(sf::Vector2f(0.f, 500.f));
+    cloudSprite1.setPosition(sf::Vector2f(0.f, 0.f * scaleY));
+    cloudSprite1.setScale(scaleX, scaleY);
+    cloudSprite2.setPosition(sf::Vector2f(0.f, 250.f * scaleY));
+    cloudSprite2.setScale(scaleX, scaleY);
+    cloudSprite3.setPosition(sf::Vector2f(0.f, 500.f * scaleY));
+    cloudSprite3.setScale(scaleX, scaleY);
 
     bool cloudActive1 = false;
     bool cloudActive2 = false;
@@ -67,6 +89,9 @@ int main()
 
     std::printf("Before the loop\n");
 
+    bool gamePaused = true;
+
+    Clock clock;
 
     while(window.isOpen()){
         sf::Event event;
@@ -81,28 +106,105 @@ int main()
             window.close();
         }
 
-        Time dt = clock.restart();
-
-        if(!beeActive){
-            beeActive = true;
-
-            srand((int)time(0));
-            beeSpeed = (rand() % 100) + 300; // koliko piksela po sekundi da se pomera
-
-            srand((int)time(0) * 10);
-            float beeY = (rand() % vm.height/2) + 100;
-            beeSprite.setPosition(1430, beeY);
-            std::printf("Bee Y: %f\n", beeY);
-
-            
+        if (Keyboard::isKeyPressed(Keyboard::Return))
+        {
+            gamePaused = false;
         }
-        else{
-            beeSprite.setPosition(beeSprite.getPosition().x - (beeSpeed * dt.asSeconds()), 
-                                    beeSprite.getPosition().y);
 
-            if(beeSprite.getPosition().x < -100){
-                beeActive = false;
+
+        if (!gamePaused)
+        {
+            
+            Time dt = clock.restart();
+
+            if(!beeActive){
+                beeActive = true;
+
+                srand((int)time(0));
+                beeSpeed = (rand() % 100) + 300; // koliko piksela po sekundi da se pomera
+
+                srand((int)time(0) * 10);
+                float beeY = (rand() % vm.height/2) + 100;
+                beeSprite.setPosition(1430, beeY);
+                std::printf("Bee Y: %f\n", beeY);
+
+                
             }
+            else{
+                beeSprite.setPosition(beeSprite.getPosition().x - (beeSpeed * dt.asSeconds()), 
+                                        beeSprite.getPosition().y);
+
+                if(beeSprite.getPosition().x < -100){
+                    beeActive = false;
+                }
+            }
+
+            if (!cloudActive1){
+                cloudActive1 = true;
+
+                srand((int)time(0) * 10);
+                cloudSpeed1 = (rand() % 100); // koliko piksela po sekundi da se pomera
+
+                srand((int)time(0) * 10);
+                float cloud1Y = (rand() % 150);
+                cloudSprite1.setPosition(-200, cloud1Y);
+                std::printf("Cloud1 Y: %f\n", cloud1Y);
+                
+            }
+            else{
+                cloudSprite1.setPosition(cloudSprite1.getPosition().x + (cloudSpeed1 * dt.asSeconds()), 
+                                        cloudSprite1.getPosition().y);
+                
+
+                if(cloudSprite1.getPosition().x > 1440){
+                    cloudActive1 = false;
+                }
+            }
+
+            if (!cloudActive2){
+                cloudActive2 = true;
+
+                srand((int)time(0) * 20);
+                cloudSpeed2 = (rand() % 100); // koliko piksela po sekundi da se pomera
+
+                srand((int)time(0) * 20);
+                float cloud2Y = (rand() % 300) - 100;
+                cloudSprite2.setPosition(-400, cloud2Y);
+                std::printf("Cloud1 Y: %f\n", cloud2Y);
+                
+            }
+            else{
+                cloudSprite2.setPosition(cloudSprite2.getPosition().x + (cloudSpeed2 * dt.asSeconds()), 
+                                        cloudSprite2.getPosition().y);
+                
+
+                if(cloudSprite2.getPosition().x > 1440){
+                    cloudActive2 = false;
+                }
+            }
+
+            if (!cloudActive3){
+                cloudActive3 = true;
+
+                srand((int)time(0) * 30);
+                cloudSpeed3 = (rand() % 100); // koliko piksela po sekundi da se pomera
+
+                srand((int)time(0) * 30);
+                float cloud3Y = (rand() % 450) - 150;
+                cloudSprite3.setPosition(-500, cloud3Y);
+                std::printf("Cloud1 Y: %f\n", cloud3Y);
+                
+            }
+            else{
+                cloudSprite3.setPosition(cloudSprite3.getPosition().x + (cloudSpeed3 * dt.asSeconds()), 
+                                        cloudSprite3.getPosition().y);
+                
+
+                if(cloudSprite3.getPosition().x > 1440){
+                    cloudActive3 = false;
+                }
+            }
+
         }
 
         window.clear();
