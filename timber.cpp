@@ -14,6 +14,31 @@
 
 using namespace sf;
 
+const int NUM_BRANCHES = 6;
+Sprite branches[NUM_BRANCHES];
+
+enum class side { LEFT, RIGHT, NONE };
+side branchPositions[NUM_BRANCHES];
+
+void updateBranches(int seed){
+    for(int j = NUM_BRANCHES - 1; j > 0; j--){
+        branchPositions[j] = branchPositions[j - 1];
+    }
+    srand((int)time(0) + seed);
+    int r = rand() % 5;
+    switch (r)
+    {
+        case 0:
+            branchPositions[0] = side::LEFT;
+            break;
+        case 1:
+            branchPositions[0] = side::RIGHT;
+            break;
+        default:
+            branchPositions[0] = side::NONE;
+            break;
+    }
+}
 int main()
 {
     sf::VideoMode vm = sf::VideoMode::getDesktopMode();
@@ -31,10 +56,8 @@ int main()
 
     sf::Sprite backgroundSprite(backgroundTexture);
     backgroundSprite.setPosition(sf::Vector2f(0.f, 0.f));
-    backgroundSprite.setScale(
-        static_cast<float>(vm.width) / backgroundTexture.getSize().x,
-        static_cast<float>(vm.height) / backgroundTexture.getSize().y
-    );
+    backgroundSprite.setScale(scaleX, scaleY);
+    
 
     std::printf("Windows size: %u %u\n", vm.width, vm.height);
     
@@ -49,7 +72,7 @@ int main()
 
     float treeX = static_cast<float>(vm.width/2) - (treeTexture.getSize().x * scaleX)/2;
     float treeY = 0.f;
-    treeSprite.setScale(scaleX, 1);
+    treeSprite.setScale(scaleX, scaleY);
     treeSprite.setPosition(sf::Vector2f(treeX, treeY));
 
     Texture beeTexture;
@@ -89,9 +112,118 @@ int main()
 
     std::printf("Before the loop\n");
 
-    bool gamePaused = true;
+
 
     Clock clock;
+
+    RectangleShape timeBar;
+    float timeBarWidth = 400.f;
+    float timeBarHeight = 80.f;
+    timeBar.setSize(sf::Vector2f(timeBarWidth, timeBarHeight));
+    timeBar.setFillColor(sf::Color::Red);
+    timeBar.setScale(scaleX, scaleY);
+    timeBar.setPosition(sf::Vector2f(vm.width/2 - timeBarWidth * scaleX / 2, vm.height - timeBarHeight * scaleY));
+
+    Time getTimeTotal;
+    float timeRemaining = 6.f;
+    float timeBarWidthPerSecond = timeBarWidth / timeRemaining;
+
+    bool gamePaused = true;
+    
+    int score = 0;
+
+    sf::Text messageText;
+    sf::Text scoreText;
+
+    Font font;
+    if(!font.loadFromFile("./assets/fonts/KOMIKAP_.ttf")){
+        std::printf("Error loading font");
+    }
+    messageText.setFont(font);
+    scoreText.setFont(font);
+
+    messageText.setString("Press Enter to start");
+    scoreText.setString("Score: 0");
+
+    messageText.setCharacterSize(75);
+    scoreText.setCharacterSize(100);
+
+    messageText.setScale(scaleX, scaleY);
+    scoreText.setScale(scaleX, scaleY);
+
+    messageText.setFillColor(sf::Color::White);
+    scoreText.setFillColor(sf::Color::White);
+
+    FloatRect textRect = messageText.getLocalBounds();
+    messageText.setOrigin(textRect.left + textRect.width/2.0f, textRect.top + textRect.height/2.0f);
+    messageText.setPosition(sf::Vector2f(vm.width/2.0f, vm.height/2.0f));
+    scoreText.setPosition(sf::Vector2f(20.f, 20.f));
+
+    Texture branchTexture;
+    if(!branchTexture.loadFromFile("./assets/graphics/branch.png")){
+        std::printf("Error loading branch texture");
+    }
+
+    for (int i = 0; i < NUM_BRANCHES; i++){
+        branches[i].setTexture(branchTexture);
+        branches[i].setScale(scaleX, scaleY);
+        branches[i].setPosition(-2000, -2000);
+        branches[i].setOrigin(220.f, 20.f);
+    }
+
+
+   
+    updateBranches(1);
+    updateBranches(2);
+    updateBranches(3);
+    updateBranches(4);
+    updateBranches(5);
+    updateBranches(6);
+    updateBranches(7);
+    updateBranches(8);
+
+
+    Texture playerTexture;
+    if(!playerTexture.loadFromFile("./assets/graphics/player.png")){
+        std::printf("Error loading player texture");
+    }
+    sf::Sprite playerSprite(playerTexture);
+    playerSprite.setScale(scaleX, scaleY);
+    playerSprite.setPosition(sf::Vector2f(580.f * scaleX, 680.f * scaleY));
+    
+    side playerSide = side::LEFT;
+
+    Texture axeTexture;
+    if(!axeTexture.loadFromFile("./assets/graphics/axe.png")){
+        std::printf("Error loading axe texture");
+    }
+    sf::Sprite axeSprite(axeTexture);
+    axeSprite.setScale(scaleX, scaleY);
+    axeSprite.setOrigin(1, axeTexture.getSize().y * scaleY / 2);
+    axeSprite.setPosition(sf::Vector2f(700.f * scaleX, 810.f * scaleY));
+
+    Texture RIPTexture;
+    if(!RIPTexture.loadFromFile("./assets/graphics/rip.png")){
+        std::printf("Error loading RIP texture");
+    }
+    sf::Sprite RIPSprite(RIPTexture);
+    RIPSprite.setScale(scaleX, scaleY);
+    RIPSprite.setPosition(sf::Vector2f(580.f * scaleX, 780.f * scaleY));
+
+    const float AXE_POSITION_LEFT = 700.f * scaleX;
+    const float AXE_POSITION_RIGHT = 1075.f * scaleX;
+
+    Texture logTexture;
+    if(!logTexture.loadFromFile("./assets/graphics/log.png")){
+        std::printf("Error loading log texture");
+    }
+    sf::Sprite logSprite(logTexture);
+    logSprite.setScale(scaleX, scaleY);
+    logSprite.setPosition(sf::Vector2f(810.f * scaleX, 720.f * scaleY));
+
+    bool logActive = false;
+    float logSpeedX = 1000.f;
+    float logSpeedY = -1500.f;
 
     while(window.isOpen()){
         sf::Event event;
@@ -109,6 +241,9 @@ int main()
         if (Keyboard::isKeyPressed(Keyboard::Return))
         {
             gamePaused = false;
+
+            score = 0;
+            timeRemaining = 6.f;
         }
 
 
@@ -116,8 +251,24 @@ int main()
         {
             
             Time dt = clock.restart();
+            
+            timeRemaining -= dt.asSeconds();
+            timeBar.setSize(sf::Vector2f(timeBarWidthPerSecond*timeRemaining, timeBarHeight));
+
+            if (timeRemaining <= 0.f)
+            {
+                gamePaused = true;
+
+                messageText.setString("Out of time!");
+
+                FloatRect textRect = messageText.getLocalBounds();
+
+                messageText.setOrigin(textRect.left + textRect.width/2.0f, textRect.top + textRect.height/2.0f);
+                messageText.setPosition(sf::Vector2f(vm.width/2.0f, vm.height/2.0f));
+            }
 
             if(!beeActive){
+                score += 10;
                 beeActive = true;
 
                 srand((int)time(0));
@@ -126,7 +277,7 @@ int main()
                 srand((int)time(0) * 10);
                 float beeY = (rand() % vm.height/2) + 100;
                 beeSprite.setPosition(1430, beeY);
-                std::printf("Bee Y: %f\n", beeY);
+                //std::printf("Bee Y: %f\n", beeY);
 
                 
             }
@@ -148,7 +299,7 @@ int main()
                 srand((int)time(0) * 10);
                 float cloud1Y = (rand() % 150);
                 cloudSprite1.setPosition(-200, cloud1Y);
-                std::printf("Cloud1 Y: %f\n", cloud1Y);
+                //std::printf("Cloud1 Y: %f\n", cloud1Y);
                 
             }
             else{
@@ -170,7 +321,7 @@ int main()
                 srand((int)time(0) * 20);
                 float cloud2Y = (rand() % 300) - 100;
                 cloudSprite2.setPosition(-400, cloud2Y);
-                std::printf("Cloud1 Y: %f\n", cloud2Y);
+                //std::printf("Cloud1 Y: %f\n", cloud2Y);
                 
             }
             else{
@@ -192,7 +343,7 @@ int main()
                 srand((int)time(0) * 30);
                 float cloud3Y = (rand() % 450) - 150;
                 cloudSprite3.setPosition(-500, cloud3Y);
-                std::printf("Cloud1 Y: %f\n", cloud3Y);
+                //std::printf("Cloud1 Y: %f\n", cloud3Y);
                 
             }
             else{
@@ -205,6 +356,29 @@ int main()
                 }
             }
 
+            std::stringstream ss;
+            ss << "Score: " << score;
+            scoreText.setString(ss.str());
+
+            for(int i = 0; i < NUM_BRANCHES; i++){
+
+                float height = i * 150 * scaleY;
+                
+                if(branchPositions[i] == side::LEFT){
+                    branches[i].setPosition(610 * scaleX, height);
+                    
+                    branches[i].setRotation(180.f);
+                }
+                else if(branchPositions[i] == side::RIGHT){
+                    branches[i].setPosition(1330 * scaleX, height);
+                    branches[i].setRotation(0.f);
+                }
+                else{
+                    branches[i].setPosition(2000, height);
+                }
+                
+            }
+
         }
 
         window.clear();
@@ -215,9 +389,27 @@ int main()
         window.draw(cloudSprite2);
         window.draw(cloudSprite3);
 
+        for(int i = 0; i < NUM_BRANCHES; i++){
+            window.draw(branches[i]);
+        }
+
         window.draw(treeSprite);
+
+        window.draw(logSprite);
+        window.draw(playerSprite);
+        window.draw(axeSprite);
+        window.draw(RIPSprite);
         
         window.draw(beeSprite);
+
+        window.draw(timeBar);
+
+        window.draw(scoreText);
+        if (gamePaused)
+        {
+            window.draw(messageText);
+        }
+
 
         window.display();
 
