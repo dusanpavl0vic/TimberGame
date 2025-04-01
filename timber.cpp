@@ -43,6 +43,7 @@ int main()
 {
     sf::VideoMode vm = sf::VideoMode::getDesktopMode();
     sf::RenderWindow window(vm, "Timber!", sf::Style::None);
+    window.setFramerateLimit(1000);
 
     float scaleX = vm.width / 1920.0f;
     float scaleY = vm.height / 1080.0f;
@@ -228,9 +229,55 @@ int main()
     bool acceptInut = false;
 
 
+    sf::SoundBuffer chopBuffer;
+    if(!chopBuffer.loadFromFile("./assets/sound/chop.wav")){
+        std::printf("Error loading chop sound");
+    }
+    sf::Sound chop;
+    chop.setBuffer(chopBuffer);
+
+    sf::SoundBuffer deathBuffer;
+    if(!deathBuffer.loadFromFile("./assets/sound/death.wav")){
+        std::printf("Error loading chop sound");
+    }
+    sf::Sound death;
+    death.setBuffer(deathBuffer);
+
+    sf::SoundBuffer ootBuffer;
+    if(!ootBuffer.loadFromFile("./assets/sound/out_of_time.wav")){
+        std::printf("Error loading chop sound");
+    }
+    sf::Sound oot;
+    oot.setBuffer(ootBuffer);
+
+
     
 
+    sf::Text fpsText;
+    fpsText.setFont(font);
+    fpsText.setCharacterSize(100);
+    fpsText.setScale(scaleX, scaleY);
+    fpsText.setFillColor(sf::Color::White);
+
+    FloatRect fpsRect = fpsText.getLocalBounds();
+
+    std::printf("%f %f", fpsRect.height, fpsRect.width);
+
+    fpsText.setOrigin(fpsRect.left + fpsRect.width, fpsRect.top);
+    
+
+
+    fpsText.setPosition(vm.width + 20.f, 20.f);
+    
+
+    std::printf("Zvuk ucitan");
     while(window.isOpen()){
+            
+        Time dt = clock.restart();
+
+        float fps = 1.0f / dt.asSeconds();
+        fpsText.setString("FPS: " + std::to_string((int)fps));
+        
         sf::Event event;
         while (window.pollEvent(event))
         {
@@ -288,6 +335,7 @@ int main()
                 logActive = true;
 
                 acceptInut = false;
+                chop.play();
             
             }
             if (Keyboard::isKeyPressed(Keyboard::Left)){
@@ -309,6 +357,7 @@ int main()
                 logActive= true;
 
                 acceptInut = false;
+                chop.play();
             
             }
 
@@ -316,8 +365,6 @@ int main()
 
         if (!gamePaused)
         {
-            
-            Time dt = clock.restart();
             
             timeRemaining -= dt.asSeconds();
             timeBar.setSize(sf::Vector2f(timeBarWidthPerSecond*timeRemaining, timeBarHeight));
@@ -332,6 +379,8 @@ int main()
 
                 messageText.setOrigin(textRect.left + textRect.width/2.0f, textRect.top + textRect.height/2.0f);
                 messageText.setPosition(sf::Vector2f(vm.width/2.0f, vm.height/2.0f));
+
+                oot.play();
             }
 
             if(!beeActive){
@@ -472,6 +521,8 @@ int main()
                 messageText.setOrigin(textRect.left + textRect.width / 2.f, textRect.top + textRect.height / 2.f);
 
                 messageText.setPosition(vm.width / 2.f, vm.height / 2.f);
+
+                death.play();
             }
         }
 
@@ -500,6 +551,7 @@ int main()
         window.draw(timeBar);
 
         window.draw(scoreText);
+        window.draw(fpsText);
         if (gamePaused)
         {
             window.draw(messageText);

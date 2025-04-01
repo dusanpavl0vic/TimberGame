@@ -1,6 +1,6 @@
 CXX = g++
 CXXFLAGS = -std=c++17 -I"/opt/homebrew/Cellar/sfml@2/2.6.2_1/include"
-LDFLAGS = -L"/opt/homebrew/Cellar/sfml@2/2.6.2_1/lib" -lsfml-graphics -lsfml-window -lsfml-system
+LDFLAGS = -L"/opt/homebrew/Cellar/sfml@2/2.6.2_1/lib" -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio
 SRC = timber.cpp
 OBJ = $(SRC:.cpp=.o)
 EXEC = timber-app
