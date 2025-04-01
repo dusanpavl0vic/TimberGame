@@ -259,15 +259,15 @@ int main()
     fpsText.setScale(scaleX, scaleY);
     fpsText.setFillColor(sf::Color::White);
 
+    fpsText.setString("FPS: 0000");
+
     FloatRect fpsRect = fpsText.getLocalBounds();
 
     std::printf("%f %f", fpsRect.height, fpsRect.width);
 
     fpsText.setOrigin(fpsRect.left + fpsRect.width, fpsRect.top);
     
-
-
-    fpsText.setPosition(vm.width + 20.f, 20.f);
+    fpsText.setPosition(vm.width + 20.f, 40.f);
     
 
     std::printf("Zvuk ucitan");
@@ -509,7 +509,12 @@ int main()
                 gamePaused = true;
                 acceptInut = false;
 
-                RIPSprite.setPosition(525 * scaleX, 760 * scaleY);
+                if ( playerSide == side::RIGHT){
+                    RIPSprite.setPosition(1255 * scaleX, 760 * scaleY);
+                }
+                else{
+                    RIPSprite.setPosition(525 * scaleX, 760 * scaleY);
+                }
 
                 playerSprite.setPosition(2000 * scaleX, 660 * scaleY);
                 axeSprite.setPosition(2000 * scaleX, 830 * scaleY);
