@@ -227,6 +227,9 @@ int main()
 
     bool acceptInut = false;
 
+
+    
+
     while(window.isOpen()){
         sf::Event event;
         while (window.pollEvent(event))
@@ -450,6 +453,25 @@ int main()
                     logActive = false;
                     logSprite.setPosition(810 * scaleX, 720 * scaleY);
                 }
+            }
+
+            if (branchPositions[5] == playerSide){
+
+                gamePaused = true;
+                acceptInut = false;
+
+                RIPSprite.setPosition(525 * scaleX, 760 * scaleY);
+
+                playerSprite.setPosition(2000 * scaleX, 660 * scaleY);
+                axeSprite.setPosition(2000 * scaleX, 830 * scaleY);
+
+                messageText.setString("SQUISHED!!");
+
+                FloatRect textRect = messageText.getLocalBounds();
+
+                messageText.setOrigin(textRect.left + textRect.width / 2.f, textRect.top + textRect.height / 2.f);
+
+                messageText.setPosition(vm.width / 2.f, vm.height / 2.f);
             }
         }
 
