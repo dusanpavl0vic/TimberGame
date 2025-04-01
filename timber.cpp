@@ -189,7 +189,7 @@ int main()
     }
     sf::Sprite playerSprite(playerTexture);
     playerSprite.setScale(scaleX, scaleY);
-    playerSprite.setPosition(sf::Vector2f(580.f * scaleX, 680.f * scaleY));
+    playerSprite.setPosition(sf::Vector2f(580.f * scaleX, 720.f * scaleY));
     
     side playerSide = side::LEFT;
 
@@ -199,8 +199,7 @@ int main()
     }
     sf::Sprite axeSprite(axeTexture);
     axeSprite.setScale(scaleX, scaleY);
-    axeSprite.setOrigin(1, axeTexture.getSize().y * scaleY / 2);
-    axeSprite.setPosition(sf::Vector2f(700.f * scaleX, 810.f * scaleY));
+    axeSprite.setPosition(sf::Vector2f(700.f * scaleX, 830.f * scaleY));
 
     Texture RIPTexture;
     if(!RIPTexture.loadFromFile("./assets/graphics/rip.png")){
@@ -208,7 +207,7 @@ int main()
     }
     sf::Sprite RIPSprite(RIPTexture);
     RIPSprite.setScale(scaleX, scaleY);
-    RIPSprite.setPosition(sf::Vector2f(580.f * scaleX, 780.f * scaleY));
+    RIPSprite.setPosition(sf::Vector2f(600.f * scaleX, 860.f * scaleY));
 
     const float AXE_POSITION_LEFT = 700.f * scaleX;
     const float AXE_POSITION_RIGHT = 1075.f * scaleX;
@@ -217,13 +216,16 @@ int main()
     if(!logTexture.loadFromFile("./assets/graphics/log.png")){
         std::printf("Error loading log texture");
     }
+
     sf::Sprite logSprite(logTexture);
     logSprite.setScale(scaleX, scaleY);
     logSprite.setPosition(sf::Vector2f(810.f * scaleX, 720.f * scaleY));
 
     bool logActive = false;
     float logSpeedX = 1000.f;
-    float logSpeedY = -1500.f;
+    float logSpeedY = -1000.f;
+
+    bool acceptInut = false;
 
     while(window.isOpen()){
         sf::Event event;
@@ -231,7 +233,15 @@ int main()
         {
             if (event.type == sf::Event::Closed)
                 window.close();
+
+            if (event.type == sf::Event::KeyReleased && !gamePaused){
+                acceptInut = true;
+
+                axeSprite.setPosition(3000 * scaleX, axeSprite.getPosition().y);
+
+            }
         }
+
 
         if (Keyboard::isKeyPressed(Keyboard::Escape))
         {
@@ -244,8 +254,62 @@ int main()
 
             score = 0;
             timeRemaining = 6.f;
+
+            for (int i = 1; i < NUM_BRANCHES; i++){
+                branchPositions[i] = side::NONE;
+            }
+
+            RIPSprite.setPosition(675, 2000 * scaleY);
+            playerSprite.setPosition(580 * scaleX, 720 * scaleY);
+
+            acceptInut = true;
         }
 
+        if (acceptInut){
+            if (Keyboard::isKeyPressed(Keyboard::Right)){
+
+                playerSide = side::RIGHT;
+
+                score++;
+
+                timeRemaining += (2 / score ) + .15;
+
+                axeSprite.setPosition(AXE_POSITION_RIGHT, axeSprite.getPosition().y);
+
+                playerSprite.setPosition(1200 * scaleX, 720 * scaleY);
+
+                updateBranches(score);
+
+                logSprite.setPosition(810 * scaleX, 720 * scaleY);
+                logSpeedX = -5000 * scaleX;
+                logActive = true;
+
+                acceptInut = false;
+            
+            }
+            if (Keyboard::isKeyPressed(Keyboard::Left)){
+
+                playerSide = side::LEFT;
+
+                score++;
+
+                timeRemaining += (2 / score ) + .15;
+
+                axeSprite.setPosition(AXE_POSITION_LEFT, axeSprite.getPosition().y);
+
+                playerSprite.setPosition(580 * scaleX, 720 * scaleY);
+
+                updateBranches(score);
+
+                logSprite.setPosition(810 * scaleX, 720 * scaleY);
+                logSpeedX = 5000 * scaleX;
+                logActive= true;
+
+                acceptInut = false;
+            
+            }
+
+        }
 
         if (!gamePaused)
         {
@@ -379,7 +443,16 @@ int main()
                 
             }
 
+            if (logActive){
+                logSprite.setPosition(logSprite.getPosition().x + (logSpeedX * dt.asSeconds()), logSprite.getPosition().y + (logSpeedY * dt.asSeconds()));
+    
+                if(logSprite.getPosition().x < -100 || logSprite.getPosition().x > 2000 * scaleX){
+                    logActive = false;
+                    logSprite.setPosition(810 * scaleX, 720 * scaleY);
+                }
+            }
         }
+
 
         window.clear();
 
